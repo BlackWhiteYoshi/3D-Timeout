@@ -1,0 +1,178 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    color-scheme: dark;
+    font-family: system-ui;
+    interpolate-size: allow-keywords;
+    
+    -moz-text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
+body {
+    min-height: 100vh;
+    line-height: 1.6;
+    margin: 0;
+    color: #EEE;
+    background-color: #222;
+    padding: 1%;
+    padding-bottom: 0;
+}
+
+
+canvas {
+    display: table;
+    margin-inline: auto;
+    
+    width: 85%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+}
+
+
+svg {
+    position: fixed;
+    inset: 2% auto auto 2%;
+    width: 3%;
+
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: #59F;
+    transition: background-color 100ms;
+
+    & > circle:first-child {
+        stroke: #FFF;
+        stroke-width: 0.5;
+    }
+
+    & > path {
+        fill: #FFF;
+    }
+
+    & > circle:last-child {
+        fill: #FFF;
+    }
+
+    &:hover {
+        background-color: #27F;
+        transition: background-color 300ms;
+    }
+
+    &:active {
+        border: #FFF solid 2px;
+    }
+
+    &[timeout] {
+        animation: timout-coloring 2s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes timout-coloring {
+    from { background-color: #59F; }
+    to { background-color: #F00; }
+}
+
+dialog {
+    border: 2px solid #FFF;
+    border-radius: 5px;
+    padding: 1em;
+
+    & > div {
+        display: flex;
+        flex-direction: row;
+        gap: 2em;
+
+        & > div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+            padding: 1em;
+            background-color: #000;
+            border: inset 1px #FFF;
+            border-radius: 5px;
+        }
+
+        /* left block - configs */
+        & > div:first-child {
+            gap: 1em;
+
+            & > div {
+                display: flex;
+                flex-direction: column;
+
+                & > label {
+                    margin-left: 0.5em;
+                    font-weight: bold;
+                }
+            }
+
+            /* Timer */
+            & > div:first-child {
+                gap: 0.4em;
+
+                & > input {
+                    margin-bottom: 0.4em;
+                    padding: 0.2em 0.5em;
+                    border-radius: 10px;
+                    text-align: center;
+                }
+
+                & > button {
+                    width: fit-content;
+                    margin-inline: auto;
+                    padding: 0.3em 0.6em;
+                    background-color: #000;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+            }
+
+            /* Mouse Sensitivity & Move Speed */
+            & > div:not(:first-child) {
+                & > label:first-child {
+                    margin-bottom: 0.4em;
+                }
+
+                & > input {
+                    margin-bottom: 0.25em;
+                }
+
+                & > label:last-child {
+                    margin-inline: auto;
+                    font-weight: normal;
+                    font-size: 0.9rem;
+                }
+            }
+        }
+        
+        /* right block - controls */
+        & > div:last-child {
+            & > label {
+                margin: 0 auto 0.8em auto;
+                font-weight: bold;
+            }
+
+            & > div {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                column-gap: 0.2em;
+
+                & > div {
+                    display: contents;
+
+                    & > label:last-child {
+                        margin-bottom: 0.8em;
+                    }
+                }
+            }
+        }
+    }
+
+    &::backdrop {
+        background-image: linear-gradient(-10deg, #FFFA, #FFF2);
+        cursor: pointer;
+    }
+}
