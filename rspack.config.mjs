@@ -4,7 +4,7 @@ export default {
     mode: "development",
     entry: "./main.ts",
     output: {
-        path: path.resolve(import.meta.dirname, "wwwroot"),
+        path: path.resolve(import.meta.dirname, "docs"),
         filename: "site.js"
     },
     module: {

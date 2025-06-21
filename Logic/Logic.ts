@@ -1,7 +1,7 @@
 import { Renderer } from "../Rendering/Renderer";
 import { Mesh } from "../Rendering/Mesh";
 import { BoxCollider } from "./BoxCollider";
-import { mat4, vec3 } from "gl-matrix";
+import { Mat4, mat4, Vec3, vec3 } from "wgpu-matrix";
 
 export class Logic {
     static SPEED_MULTIPLIER = 5;
@@ -15,12 +15,12 @@ export class Logic {
     private boxColliderBuffer: BoxCollider[] = new Array<BoxCollider>(512);
     private boxColliderCount: number = 0;
     
-    private viewPos: vec3;
-    private viewRotation: vec3;
-    private view: mat4;
+    private viewPos: Vec3;
+    private viewRotation: Vec3;
+    private view: Mat4;
 
     private projectionFieldOfView: number = 1.0;
-    private projection: mat4;
+    private projection: Mat4;
 
     private brightnessTimer: number = 0.0;
     private colorTimer: number = 0.0;
@@ -40,10 +40,10 @@ export class Logic {
         for (let i = 0; i < this.boxColliderBuffer.length; i++)
             this.boxColliderBuffer[i] = new BoxCollider(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
-        this.view = mat4.create();
-        this.viewPos = vec3.create();
+        this.view = mat4.identity();
+        this.viewPos = vec3.zero();
         this.viewPos[2] = -3;
-        this.viewRotation = vec3.create();
+        this.viewRotation = vec3.zero();
 
         this.projection = mat4.create();
         this.zoomCamera(0);
@@ -112,9 +112,9 @@ export class Logic {
             this.handleCameraCollision();
 
             mat4.identity(this.view);
-            mat4.rotateX(this.view, this.view, this.viewRotation[1]);
-            mat4.rotateY(this.view, this.view, this.viewRotation[0]);
-            mat4.translate(this.view, this.view, this.viewPos);
+            mat4.rotateX(this.view, this.viewRotation[1], this.view);
+            mat4.rotateY(this.view, this.viewRotation[0], this.view);
+            mat4.translate(this.view, this.viewPos, this.view);
         }
 
         this.renderer.view = this.view;
@@ -141,7 +141,7 @@ export class Logic {
         const sinY = Math.sin(Math.acos(lightDirectionY));
         const lightDirectionX = Math.cos(this.lightDirectionTimer) * sinY;
         const lightDirectionZ = Math.sin(this.lightDirectionTimer) * sinY;
-        this.renderer.lightDirection = vec3.fromValues(lightDirectionX, lightDirectionY, lightDirectionZ);
+        this.renderer.lightDirection = vec3.create(lightDirectionX, lightDirectionY, lightDirectionZ);
 
 
         // rendering
@@ -175,7 +175,7 @@ export class Logic {
             for (let i = 0; i < this.boxColliderCount; i++) {
                 const digitCollider = this.boxColliderBuffer[i];
                 if (digitCollider.hasCollision(cameraCollider)) {
-                    const pushAmount: vec3 = digitCollider.handleCollision(cameraCollider);
+                    const pushAmount: Vec3 = digitCollider.handleCollision(cameraCollider);
                     this.viewPos[0] += pushAmount[0];
                     this.viewPos[1] += pushAmount[1];
                     this.viewPos[2] += pushAmount[2];
@@ -192,7 +192,7 @@ export class Logic {
             // little sphere and sphere cubes area
 
             const cameraCollider = BoxCollider.create(this.viewPos, 0.5);
-            const sphereBoxCollider = BoxCollider.create([0.0, 0.0, 500.0], 20.0);
+            const sphereBoxCollider = BoxCollider.create(vec3.create(0.0, 0.0, 500.0), 20.0);
             if (sphereBoxCollider.hasCollision(cameraCollider)) {
                 // camera and little sphere are both sphere colliders at this point
                 const lengthX = this.viewPos[0] - 0.0;
@@ -209,20 +209,18 @@ export class Logic {
                     return;
 
 
-                const direction: vec3 = [lengthX / distance, lengthY / distance, lengthZ / distance];
-
-                this.viewPos[0] += direction[0] * distanceDif;
-                this.viewPos[1] += direction[1] * distanceDif;
-                this.viewPos[2] += direction[2] * distanceDif;
+                this.viewPos[0] += lengthX / distance * distanceDif;
+                this.viewPos[1] += lengthY / distance * distanceDif;
+                this.viewPos[2] += lengthZ / distance * distanceDif;
 
                 return;
             }
 
             // sphere cubes
             for (let i = 0; i < Mesh.sphere.vertixCount; i++) {
-                const cubeCollider = BoxCollider.create([Mesh.sphere.vertices[8 * i] * -200, Mesh.sphere.vertices[8 * i + 1] * -200, Mesh.sphere.vertices[8 * i + 2] * -200 + 500], 0.5);
+                const cubeCollider = BoxCollider.create(vec3.create(Mesh.sphere.vertices[8 * i] * -200, Mesh.sphere.vertices[8 * i + 1] * -200, Mesh.sphere.vertices[8 * i + 2] * -200 + 500), 0.5);
                 if (cubeCollider.hasCollision(cameraCollider)) {
-                    const pushAmount: vec3 = cubeCollider.handleCollision(cameraCollider);
+                    const pushAmount: Vec3 = cubeCollider.handleCollision(cameraCollider);
                     this.viewPos[0] += pushAmount[0];
                     this.viewPos[1] += pushAmount[1];
                     this.viewPos[2] += pushAmount[2];
@@ -239,16 +237,16 @@ export class Logic {
         const DIGIT_LINE = 10.0;
         const SPACING = 40.0;
 
-        const reset = (model: mat4, translateX: number) => {
+        const reset = (model: Mat4, translateX: number) => {
             mat4.identity(model);
-            mat4.translate(model, model, [translateX, 0, -200]);
+            mat4.translate(model, [translateX, 0, -200], model);
             return model;
         }
 
         
-        const topBar = (model: mat4) => {
-            mat4.translate(model, model, [0.0, 2.0 * DIGIT_LINE + 2.0, 0.0]);
-            mat4.scale(model, model, [DIGIT_LINE, 1.0, 1.0]);
+        const topBar = (model: Mat4) => {
+            mat4.translate(model, [0.0, 2.0 * DIGIT_LINE + 2.0, 0.0], model);
+            mat4.scale(model, [DIGIT_LINE, 1.0, 1.0], model);
             
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - DIGIT_LINE;
@@ -261,8 +259,8 @@ export class Logic {
             return model;
         }
 
-        const middleBar = (model: mat4) => {
-            mat4.scale(model, model, [DIGIT_LINE, 1.0, 1.0]);
+        const middleBar = (model: Mat4) => {
+            mat4.scale(model, [DIGIT_LINE, 1.0, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - DIGIT_LINE;
@@ -275,9 +273,9 @@ export class Logic {
             return model;
         }
 
-        const bottomBar = (model: mat4) => {
-            mat4.translate(model, model, [0.0, -2.0 * DIGIT_LINE - 2.0, 0.0]);
-            mat4.scale(model, model, [DIGIT_LINE, 1.0, 1.0]);
+        const bottomBar = (model: Mat4) => {
+            mat4.translate(model, [0.0, -2.0 * DIGIT_LINE - 2.0, 0.0], model);
+            mat4.scale(model, [DIGIT_LINE, 1.0, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - DIGIT_LINE;
@@ -290,9 +288,9 @@ export class Logic {
             return model;
         }
 
-        const upperLeftBar = (model: mat4) => {
-            mat4.translate(model, model, [-DIGIT_LINE - 1.0, DIGIT_LINE + 1.0, 0.0]);
-            mat4.scale(model, model, [1.0, DIGIT_LINE, 1.0]);
+        const upperLeftBar = (model: Mat4) => {
+            mat4.translate(model, [-DIGIT_LINE - 1.0, DIGIT_LINE + 1.0, 0.0], model);
+            mat4.scale(model, [1.0, DIGIT_LINE, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - 1.0;
@@ -305,9 +303,9 @@ export class Logic {
             return model;
         }
 
-        const upperRightBar = (model: mat4) => {
-            mat4.translate(model, model, [DIGIT_LINE + 1.0, DIGIT_LINE + 1.0, 0.0]);
-            mat4.scale(model, model, [1.0, DIGIT_LINE, 1.0]);
+        const upperRightBar = (model: Mat4) => {
+            mat4.translate(model, [DIGIT_LINE + 1.0, DIGIT_LINE + 1.0, 0.0], model);
+            mat4.scale(model, [1.0, DIGIT_LINE, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - 1.0;
@@ -320,9 +318,9 @@ export class Logic {
             return model;
         }
 
-        const lowerLeftBar = (model: mat4) => {
-            mat4.translate(model, model, [-DIGIT_LINE - 1.0, -DIGIT_LINE - 1.0, 0.0]);
-            mat4.scale(model, model, [1.0, DIGIT_LINE, 1.0]);
+        const lowerLeftBar = (model: Mat4) => {
+            mat4.translate(model, [-DIGIT_LINE - 1.0, -DIGIT_LINE - 1.0, 0.0], model);
+            mat4.scale(model, [1.0, DIGIT_LINE, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - 1.0;
@@ -335,9 +333,9 @@ export class Logic {
             return model;
         }
 
-        const lowerRightBar = (model: mat4) => {
-            mat4.translate(model, model, [DIGIT_LINE + 1.0, -DIGIT_LINE - 1.0, 0.0]);
-            mat4.scale(model, model, [1.0, DIGIT_LINE, 1.0]);
+        const lowerRightBar = (model: Mat4) => {
+            mat4.translate(model, [DIGIT_LINE + 1.0, -DIGIT_LINE - 1.0, 0.0], model);
+            mat4.scale(model, [1.0, DIGIT_LINE, 1.0], model);
 
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - 1.0;
@@ -520,6 +518,6 @@ export class Logic {
         else if (this.projectionFieldOfView > 1.6)
             this.projectionFieldOfView = 1.6;
 
-        mat4.perspective(this.projection, this.projectionFieldOfView, this.htmlCanvas.width / this.htmlCanvas.height, 0.1, 500.0);
+        mat4.perspective(this.projectionFieldOfView, this.htmlCanvas.width / this.htmlCanvas.height, 0.1, 500.0, this.projection);
     }
 }

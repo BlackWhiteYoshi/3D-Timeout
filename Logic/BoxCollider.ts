@@ -1,4 +1,4 @@
-import { vec3 } from "gl-matrix";
+import { Vec3, vec3 } from "wgpu-matrix";
 
 export class BoxCollider {
     public ax: number;
@@ -19,7 +19,7 @@ export class BoxCollider {
         this.bz = bz;
     }
 
-    static create(position: vec3, radius: number) {
+    static create(position: Vec3, radius: number) {
         return new BoxCollider(position[0] - radius, position[0] + radius, position[1] - radius, position[1] + radius, position[2] - radius, position[2] + radius);
     }
 
@@ -60,7 +60,7 @@ export class BoxCollider {
     }
 
 
-    public handleCollision(otherCollider: BoxCollider): vec3 {
+    public handleCollision(otherCollider: BoxCollider): Vec3 {
         function MinDistance(isA: boolean, isB: boolean, a: number, b: number, otherA: number, otherB: number): number {
             if (isA && !isB)
                 return b - otherA;
@@ -82,13 +82,13 @@ export class BoxCollider {
 
         if (Math.abs(dx) < Math.abs(dy))
             if (Math.abs(dx) < Math.abs(dz))
-                return [dx, 0.0, 0.0];
+                return vec3.create(dx, 0.0, 0.0);
             else
-                return [0.0, 0.0, dz];
+                return vec3.create(0.0, 0.0, dz);
         else
             if (Math.abs(dy) < Math.abs(dz))
-                return [0.0, dy, 0.0];
+                return vec3.create(0.0, dy, 0.0);
             else
-                return [0.0, 0.0, dz];
+                return vec3.create(0.0, 0.0, dz);
     }
 }

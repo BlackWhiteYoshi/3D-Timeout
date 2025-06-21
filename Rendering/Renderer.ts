@@ -1,7 +1,7 @@
 import SHADER_CODE from "./Shader/shaders.wgsl";
 import { Mesh } from "./Mesh";
 import { ImageLoader } from "./ImageLoader";
-import { mat4, vec3 } from "gl-matrix";
+import { Mat4, mat4, Vec3, vec3 } from "wgpu-matrix";
 
 export class Renderer {
     private static COLOR_FORMAT: GPUTextureFormat = "bgra8unorm";
@@ -158,16 +158,16 @@ export class Renderer {
         // model matrices
         const modelArray = new Float32Array((1 + Mesh.sphere.vertixCount) * 16); // (little sphere + sphere cubes + dynamic digits buffer) * matrix size
         {
-            const temp = mat4.create();
+            const temp = mat4.identity();
             // little sphere
-            mat4.translate(temp, temp, [0.0, 0.0, -500.0]);
-            mat4.scale(temp, temp, [20.0, 20.0, 20.0])
+            mat4.translate(temp, [0.0, 0.0, -500.0], temp);
+            mat4.scale(temp, [20.0, 20.0, 20.0], temp)
             modelArray.set(temp, 0);
             // sphere cubes
             for (let i = 0; i < Mesh.sphere.vertixCount; i++) {
                 mat4.identity(temp);
-                mat4.translate(temp, temp, [Mesh.sphere.vertices[8 * i] * 200, Mesh.sphere.vertices[8 * i + 1] * 200, Mesh.sphere.vertices[8 * i + 2] * 200 - 500]);
-                mat4.scale(temp, temp, [0.5, 0.5, 0.5]);
+                mat4.translate(temp, [Mesh.sphere.vertices[8 * i] * 200, Mesh.sphere.vertices[8 * i + 1] * 200, Mesh.sphere.vertices[8 * i + 2] * 200 - 500], temp);
+                mat4.scale(temp, [0.5, 0.5, 0.5], temp);
                 modelArray.set(temp, (i + 1) * 16);
             }
         }
@@ -405,15 +405,15 @@ export class Renderer {
 
 
 
-    public set view(view: mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, view as unknown as ArrayBuffer); }
+    public set view(view: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, view as unknown as ArrayBuffer); }
 
-    public set projection(projection: mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, projection as unknown as ArrayBuffer); }
+    public set projection(projection: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, projection as unknown as ArrayBuffer); }
 
     public set brightness(brightness: number) { this.device.queue.writeBuffer(this.brightnessUniform, 0, new Float32Array([brightness])); }
 
     public set colorRotate(colorRotate: number) { this.device.queue.writeBuffer(this.colorRotateUnifrom, 0, new Float32Array([colorRotate])); }
 
-    public set lightDirection(lightDirection: vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, lightDirection as unknown as ArrayBuffer); }
+    public set lightDirection(lightDirection: Vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, lightDirection as unknown as ArrayBuffer); }
 
 
 
