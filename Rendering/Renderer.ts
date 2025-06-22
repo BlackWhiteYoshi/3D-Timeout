@@ -61,12 +61,12 @@ export class Renderer {
 
         // textures
         const imageLoader = new ImageLoader();
-        const bitmap = await imageLoader.loadSvg("img/rose.svg", 4096, 4096);
+        const bitmaps = await imageLoader.loadSvgMipmaps("img/rose.svg", 4096, 4096, 6);
         
-        return new Renderer(canvas, gpuAdapter, device, shaderModule, bitmap);
+        return new Renderer(canvas, gpuAdapter, device, shaderModule, bitmaps);
     }
 
-    private constructor(canvas: HTMLCanvasElement, gpuAdapter: GPUAdapter, device: GPUDevice, shaderModule: GPUShaderModule, bitmap: ImageBitmap) {
+    private constructor(canvas: HTMLCanvasElement, gpuAdapter: GPUAdapter, device: GPUDevice, shaderModule: GPUShaderModule, bitmaps: ImageBitmap[]) {
         this.htmlCanvas = canvas;
         this.gpuAdapter = gpuAdapter;
         this.device = device;
@@ -137,14 +137,16 @@ export class Renderer {
         // texture
         const textureDescriptor: GPUTextureDescriptor = {
             size: {
-                width: bitmap.width,
-                height: bitmap.height
+                width: bitmaps[0].width,
+                height: bitmaps[0].height
             },
             format: Renderer.COLOR_FORMAT,
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+            mipLevelCount: bitmaps.length
         };
         this.texture = this.device.createTexture(textureDescriptor);
-        this.device.queue.copyExternalImageToTexture({source: bitmap}, {texture: this.texture}, textureDescriptor.size);
+        for (let i = 0; i < bitmaps.length; i++)
+            this.device.queue.copyExternalImageToTexture({source: bitmaps[i]}, {texture: this.texture, mipLevel: i}, {width: bitmaps[i].width, height: bitmaps[i].height});
 
         this.textureSampler = this.device.createSampler({
             addressModeU: "clamp-to-edge",
@@ -405,15 +407,15 @@ export class Renderer {
 
 
 
-    public set view(view: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, view as unknown as ArrayBuffer); }
+    public set view(view: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, view); }
 
-    public set projection(projection: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, projection as unknown as ArrayBuffer); }
+    public set projection(projection: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, projection); }
 
     public set brightness(brightness: number) { this.device.queue.writeBuffer(this.brightnessUniform, 0, new Float32Array([brightness])); }
 
     public set colorRotate(colorRotate: number) { this.device.queue.writeBuffer(this.colorRotateUnifrom, 0, new Float32Array([colorRotate])); }
 
-    public set lightDirection(lightDirection: Vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, lightDirection as unknown as ArrayBuffer); }
+    public set lightDirection(lightDirection: Vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, lightDirection); }
 
 
 

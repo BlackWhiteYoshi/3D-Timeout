@@ -11,19 +11,22 @@ export class ImageLoader {
     
     async loadSvg(url: string, width: number, height: number): Promise<ImageBitmap> {
         const svgBlob = await this.fetchImage(url);
-        
-        const pngBlob = await new Promise<Blob>((resolve, reject) => {
-            this.image.onload = () => {
-                this.canvas.width = width;
-                this.canvas.height = height;
-                this.context.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
-                URL.revokeObjectURL(this.image.src);
-                this.canvas.toBlob((blob) => blob !== null ? resolve(blob) : reject("'canvas.toBlob' failed: it returned null"));
-            }
-            this.image.src = URL.createObjectURL(svgBlob);
-        });
-        
+        const pngBlob = await this.svgToPng(svgBlob, width, height);
         return await createImageBitmap(pngBlob);
+    }
+
+    async loadSvgMipmaps(url: string, width: number, height: number, mipLevelCount: number): Promise<ImageBitmap[]> {
+        const svgBlob = await this.fetchImage(url);
+        
+        const result = Array<ImageBitmap>(mipLevelCount);
+        for (let i = 0; i < mipLevelCount; i++) {
+            const pngBlob = await this.svgToPng(svgBlob, width, height);
+            result[i] = await createImageBitmap(pngBlob);
+            width >>= 1;
+            height >>= 1;
+        }
+
+        return result;
     }
 
 
@@ -33,5 +36,18 @@ export class ImageLoader {
             throw new Error(`fetch error '${url}': ${response.status}`);
 
         return await response.blob();
+    }
+
+    private async svgToPng(svgBlob: Blob, width: number, height: number) {
+        return await new Promise<Blob>((resolve, reject) => {
+            this.image.onload = () => {
+                this.canvas.width = width;
+                this.canvas.height = height;
+                this.context.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
+                URL.revokeObjectURL(this.image.src);
+                this.canvas.toBlob((blob) => blob !== null ? resolve(blob) : reject("'canvas.toBlob(...)' failed: it returned null"));
+            }
+            this.image.src = URL.createObjectURL(svgBlob);
+        });
     }
 }
