@@ -15,37 +15,37 @@ export class Mesh {
     public static cube: Mesh = new Mesh(
         new Float32Array([
             // position          // normal          // texturePosition
-            
+
             // front
             1.0,  1.0,  1.0,     0.0, 0.0, 1.0,     1.0, 1.0,  // 0  right-top-front
             1.0, -1.0,  1.0,     0.0, 0.0, 1.0,     1.0, 0.0,  // 1  right-bottom-front
             -1.0, -1.0,  1.0,    0.0, 0.0, 1.0,     0.0, 0.0,  // 2  left-bottom-front
             -1.0, 1.0,  1.0,     0.0, 0.0, 1.0,     0.0, 1.0,  // 3  left-top-front
-            
+
             // top
             1.0,  1.0, -1.0,     0.0, 1.0, 0.0,     1.0, 1.0,  // 4  right-top-back
             1.0,  1.0,  1.0,     0.0, 1.0, 0.0,     1.0, 0.0,  // 5  right-top-front
             -1.0,  1.0,  1.0,    0.0, 1.0, 0.0,     0.0, 0.0, // 6  left-top-front
             -1.0,  1.0, -1.0,    0.0, 1.0, 0.0,     0.0, 1.0, // 7  left-top-back
-            
+
             // bottom
             1.0, -1.0, 1.0,      0.0, -1.0, 0.0,    1.0, 1.0,   // 8  right-bottom-front
             1.0, -1.0, -1.0,     0.0, -1.0, 0.0,    1.0, 0.0,  // 9  right-bottom-back
             -1.0, -1.0, -1.0,    0.0, -1.0, 0.0,    0.0, 0.0, // 10 left-bottom-back
             -1.0, -1.0, 1.0,     0.0, -1.0, 0.0,    0.0, 1.0,  // 11 left-bottom-front
-            
+
             // left
             -1.0, 1.0, 1.0,      -1.0, 0.0, 0.0,    1.0, 1.0, // 12 left-top-front
             -1.0, -1.0, 1.0,     -1.0, 0.0, 0.0,    1.0, 0.0, // 13 left-bottom-front
             -1.0, -1.0, -1.0,    -1.0, 0.0, 0.0,    0.0, 0.0, // 14 left-bottom-back
             -1.0, 1.0, -1.0,     -1.0, 0.0, 0.0,    0.0, 1.0, // 15 left-top-back
-            
+
             // right
             1.0, 1.0, -1.0,      1.0, 0.0, 0.0,     1.0, 1.0, // 16 right-top-back
             1.0, -1.0, -1.0,     1.0, 0.0, 0.0,     1.0, 0.0, // 17 right-bottom-back
             1.0, -1.0, 1.0,      1.0, 0.0, 0.0,     0.0, 0.0, // 18 right-bottom-front
             1.0, 1.0, 1.0,       1.0, 0.0, 0.0,     0.0, 1.0, // 19 right-top-front
-            
+
             // back
             -1.0, 1.0, -1.0,     0.0, 0.0, -1.0,    1.0, 1.0, // 20 left-top-back
             -1.0, -1.0, -1.0,    0.0, 0.0, -1.0,    1.0, 0.0, // 21 left-bottom-back
@@ -82,7 +82,7 @@ export class Mesh {
 
         return this.#sphere;
     }
-    
+
     private static createSphere(): Mesh {
         // number of vertices
         const size = 10;
@@ -116,7 +116,7 @@ export class Mesh {
         }
 
 
-        
+
         // vertexPos array
 
         const horizontalLength = 8 * longitude + 9;
@@ -192,10 +192,10 @@ export class Mesh {
         const vertices: number[] = new Array(vertexPos.length * 8);
         {
             let index = 0;
-            
+
             const horizontalStep = 1.0 / (horizontalLength - 1.0);
             const verticalStep = 1.0 / (verticalLength + 1.0);
-            
+
             // top vertices
             {
                 let step = horizontalStep / 2.0;
@@ -203,18 +203,18 @@ export class Mesh {
                     vertices[index++] = 0.0;
                     vertices[index++] = 1.0;
                     vertices[index++] = 0.0;
-                    
+
                     vertices[index++] = 0.0;
                     vertices[index++] = 1.0;
                     vertices[index++] = 0.0;
-                    
+
                     vertices[index++] = step;
                     vertices[index++] = 1.0;
-                    
+
                     step += horizontalStep;
                 }
             }
-            
+
             // middle vertices
             {
                 let vStep = 1 - verticalStep;
@@ -224,20 +224,20 @@ export class Mesh {
                         vertices[index++] = vertexPos[i][j].x;
                         vertices[index++] = vertexPos[i][j].y;
                         vertices[index++] = vertexPos[i][j].z;
-                        
+
                         vertices[index++] = vertexPos[i][j].x;
                         vertices[index++] = vertexPos[i][j].y;
                         vertices[index++] = vertexPos[i][j].z;
-                        
+
                         vertices[index++] = hStep;
                         vertices[index++] = vStep;
-                        
+
                         hStep += horizontalStep;
                     }
                     vStep -= verticalStep;
                 }
             }
-            
+
             // bottom vertices
             {
                 let step = horizontalStep / 2.0;
@@ -245,14 +245,14 @@ export class Mesh {
                     vertices[index++] = 0.0;
                     vertices[index++] = -1.0;
                     vertices[index++] = 0.0;
-                    
+
                     vertices[index++] = 0.0;
                     vertices[index++] = -1.0;
                     vertices[index++] = 0.0;
-                    
+
                     vertices[index++] = step;
                     vertices[index++] = 0.0;
-                    
+
                     step += horizontalStep;
                 }
             }
@@ -266,7 +266,7 @@ export class Mesh {
         const indices: number[] = new Array(3 * (2 * offset + 2 * (verticalLength - 1) * (horizontalLength - 1)));
         {
             let index = 0;
-            
+
             // top triangles
             for (let i = 0; i < offset; i++) {
                 indices[index++] = i;
@@ -281,7 +281,7 @@ export class Mesh {
                     const topRight = offset + horizontalLength * i + j + 1;
                     const bottomLeft = offset + horizontalLength * (i + 1) + j;
                     const bottomRight = offset + horizontalLength * (i + 1) + j + 1;
-                    
+
                     indices[index++] = topRight;
                     indices[index++] = topLeft;
                     indices[index++] = bottomRight;
@@ -290,7 +290,7 @@ export class Mesh {
                     indices[index++] = topLeft;
                     indices[index++] = bottomLeft;
                 }
-        
+
             // bottom triangles
             const totalLength = horizontalLength * verticalLength;
             const bottomStart = offset + totalLength;
@@ -301,7 +301,7 @@ export class Mesh {
                 indices[index++] = lastArray + i + 1;
             }
         }
-        
+
         return new Mesh(new Float32Array(vertices), new Uint16Array(indices));
     }
 }

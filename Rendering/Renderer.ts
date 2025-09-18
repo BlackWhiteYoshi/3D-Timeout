@@ -11,7 +11,7 @@ export class Renderer {
 
     // environment/window
     private htmlCanvas: HTMLCanvasElement;
-    private canvasContext: GPUCanvasContext; 
+    private canvasContext: GPUCanvasContext;
     private gpuAdapter: GPUAdapter;
     private device: GPUDevice;
 
@@ -62,7 +62,7 @@ export class Renderer {
         // textures
         const imageLoader = new ImageLoader();
         const bitmaps = await imageLoader.loadSvgMipmaps("img/rose.svg", 4096, 4096, 6);
-        
+
         return new Renderer(canvas, gpuAdapter, device, shaderModule, bitmaps);
     }
 
@@ -70,7 +70,7 @@ export class Renderer {
         this.htmlCanvas = canvas;
         this.gpuAdapter = gpuAdapter;
         this.device = device;
-        
+
         this.canvasContext = this.htmlCanvas.getContext("webgpu")!;
         this.canvasContext.configure({
             device: this.device,
@@ -370,7 +370,7 @@ export class Renderer {
         this.renderPassEncoder.setPipeline(this.objectRenderPipeline);
     }
 
-    public renderLittleSphere() {    
+    public renderLittleSphere() {
         this.renderPassEncoder.setVertexBuffer(0, this.sphereVertexBuffer);
         this.renderPassEncoder.setIndexBuffer(this.sphereIndexBuffer, "uint16");
         this.renderPassEncoder.drawIndexed(Mesh.sphere.indices.length, 1);
@@ -407,15 +407,15 @@ export class Renderer {
 
 
 
-    public set view(view: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, view); }
+    public set view(view: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 0 * 64, <GPUAllowSharedBufferSource>view); }
 
-    public set projection(projection: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, projection); }
+    public set projection(projection: Mat4) { this.device.queue.writeBuffer(this.transformationUniform, 1 * 64, <GPUAllowSharedBufferSource>projection); }
 
     public set brightness(brightness: number) { this.device.queue.writeBuffer(this.brightnessUniform, 0, new Float32Array([brightness])); }
 
     public set colorRotate(colorRotate: number) { this.device.queue.writeBuffer(this.colorRotateUnifrom, 0, new Float32Array([colorRotate])); }
 
-    public set lightDirection(lightDirection: Vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, lightDirection); }
+    public set lightDirection(lightDirection: Vec3) { this.device.queue.writeBuffer(this.lightDirectionUniform, 0, <GPUAllowSharedBufferSource>lightDirection); }
 
 
 

@@ -39,12 +39,12 @@ struct Tranformation {
 @vertex
 fn vertex_main(@builtin(instance_index) index: u32, vertex: Vertex) -> Fragment {
     var result: Fragment;
-    
+
     result.localPosition = vertex.position;
     result.normal = vertex.normal;
     result.texturePosition = vertex.texturePosition;
     result.position = tranformation.projection * tranformation.view * modelBuffer[index] * vec4(vertex.position, 1.0);
-    
+
     return result;
 }
 
@@ -52,9 +52,9 @@ fn vertex_main(@builtin(instance_index) index: u32, vertex: Vertex) -> Fragment 
 fn fragment_main(fragment: Fragment) -> @location(0) vec4<f32> {
     // hsv color
 
-    const MIN: f32 = 1.0;
-    const MAX: f32 = 3.0;
-    const SPAN: f32 = MAX - MIN;
+    let MIN: f32 = 1.0;
+    let MAX: f32 = 3.0;
+    let SPAN: f32 = MAX - MIN;
     let squareDistance: f32 = fragment.localPosition.x * fragment.localPosition.x + fragment.localPosition.y * fragment.localPosition.y + fragment.localPosition.z * fragment.localPosition.z;
 
     var h: f32 = ((squareDistance - MIN) / SPAN + colorRotate);
@@ -65,21 +65,19 @@ fn fragment_main(fragment: Fragment) -> @location(0) vec4<f32> {
     let hsvColor: vec3<f32> = hsv2rgb(vec3<f32>(h, s, v));
 
 
-
     // texture
 
-    const TEXTURE_OPACITY: f32 = 0.5;
+    let TEXTURE_OPACITY: f32 = 0.5;
     let textureColor: vec4<f32> = textureSample(theTexture, theSampler, fragment.texturePosition);
     let opacity: f32 = TEXTURE_OPACITY * textureColor.a;
 
 
-
     // Phong
 
-    const AMBIENT: f32 = 0.5;
-    const DIFFUSE: f32 = 2.0;
-    const SPECULAR: f32 = 4.0;
-    const SPECULAR_SHININESS: f32 = 64.0;
+    let AMBIENT: f32 = 0.5;
+    let DIFFUSE: f32 = 2.0;
+    let SPECULAR: f32 = 4.0;
+    let SPECULAR_SHININESS: f32 = 64.0;
 
     let ambient: f32 = AMBIENT;
 
@@ -94,8 +92,7 @@ fn fragment_main(fragment: Fragment) -> @location(0) vec4<f32> {
     let strength: f32 = ambient + diffuse + specular;
 
 
-
-    let hsvPart: vec3<f32> = (1 - opacity) * hsvColor;
+    let hsvPart: vec3<f32> = (1.0 - opacity) * hsvColor;
     let texturePart: vec3<f32> = opacity * textureColor.rgb;
     let color: vec3<f32> = (hsvPart + texturePart) * strength;
     return vec4(color, 1.0);
@@ -115,7 +112,7 @@ fn background_vertex_main(vertex: Vertex) -> BackgroundFragment {
     result.yPosition = vertex.position.y;
     result.normal = vertex.normal;
     result.texturePosition = vertex.texturePosition;
-    
+
     let viewRotation = mat3x3<f32>(tranformation.view[0].xyz, tranformation.view[1].xyz, tranformation.view[2].xyz);
     let positionWithDepth = tranformation.projection * vec4(viewRotation * vertex.position, 1.0);
     result.position = positionWithDepth.xyww;
@@ -126,20 +123,20 @@ fn background_vertex_main(vertex: Vertex) -> BackgroundFragment {
 @fragment
 fn background_fragment_main(fragment: BackgroundFragment) -> @location(0) vec4<f32> {
     let textureColor: vec4<f32> = textureSample(theTexture, theSampler, fragment.texturePosition);
-    
+
     let brightness: f32 = (fragment.yPosition + 6.0) / 8.0;
     let backgroundColor: vec3<f32> = vec3(brightness, brightness, 0.9);
 
     let filledColor: vec3<f32> = mix(backgroundColor, textureColor.rgb, textureColor.a);
     let tintedColor = mix(filledColor, backgroundColor, 0.8);
 
-    
+
     // Phong
 
-    const AMBIENT: f32 = 1.0;
-    const DIFFUSE: f32 = 0.6;
-    const SPECULAR: f32 = 1.0;
-    const SPECULAR_SHININESS: f32 = 32.0;
+    let AMBIENT: f32 = 1.0;
+    let DIFFUSE: f32 = 0.6;
+    let SPECULAR: f32 = 1.0;
+    let SPECULAR_SHININESS: f32 = 32.0;
 
     let ambient: f32 = AMBIENT;
 
@@ -153,7 +150,7 @@ fn background_fragment_main(fragment: BackgroundFragment) -> @location(0) vec4<f
 
     let strength: f32 = ambient + diffuse + specular;
 
-    
+
     let resultColor: vec3<f32> = tintedColor * strength;
     return vec4(resultColor, 1.0);
 }

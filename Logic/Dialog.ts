@@ -8,7 +8,7 @@ export class Dialog {
 
     private timerInput: HTMLInputElement;
     private timerButton: HTMLButtonElement;
-    
+
     private moveSpeedInput: HTMLInputElement;
     private moveSpeedLabel: HTMLLabelElement;
 
@@ -27,25 +27,25 @@ export class Dialog {
         const configsDiv = this.htmlDialog.children[0].children[0];
 
         const timerDiv = configsDiv.children[0];
-        this.timerInput = (timerDiv.children[1] as HTMLInputElement);
+        this.timerInput = <HTMLInputElement>timerDiv.children[1];
         this.timerInput.onchange = this.onTimerChange;
-        this.timerButton = (timerDiv.children[2] as HTMLButtonElement);
+        this.timerButton = <HTMLButtonElement>timerDiv.children[2];
         this.timerButton.onclick = this.onTimerButtonClicked;
 
         const moveSpeedDiv = configsDiv.children[1];
-        this.moveSpeedInput = (moveSpeedDiv.children[1] as HTMLInputElement);
+        this.moveSpeedInput = <HTMLInputElement>moveSpeedDiv.children[1];
         this.moveSpeedInput.oninput = this.onMoveSpeedChanged;
-        this.moveSpeedLabel = moveSpeedDiv.children[2] as HTMLLabelElement;
+        this.moveSpeedLabel = <HTMLLabelElement>moveSpeedDiv.children[2];
 
         const mouseSensitivtyDiv = configsDiv.children[2];
-        this.mouseSensitivtyInput = (mouseSensitivtyDiv.children[1] as HTMLInputElement);
+        this.mouseSensitivtyInput = <HTMLInputElement>mouseSensitivtyDiv.children[1];
         this.mouseSensitivtyInput.oninput = this.onMouseSensitivtyChanged;
-        this.mouseSensitivtyLabel = mouseSensitivtyDiv.children[2] as HTMLLabelElement;
+        this.mouseSensitivtyLabel = <HTMLLabelElement>mouseSensitivtyDiv.children[2];
 
-        
+
         this.moveSpeedInput.value = logic.moveSpeed.toString();
         this.moveSpeedLabel.textContent = this.moveSpeedInput.value;
-        
+
         this.mouseSensitivtyInput.value = logic.mouseSensitivity.toString();
         this.mouseSensitivtyLabel.textContent = this.mouseSensitivtyInput.value;
     }
@@ -53,7 +53,7 @@ export class Dialog {
     onDialogButton = (e: MouseEvent) => {
         const time = this.logic.timeout - Date.now();
         this.timerInput.value = time > 0 ? time.toString() : "0";
-        
+
         this.htmlDialog.showModal();
     }
 
@@ -70,7 +70,7 @@ export class Dialog {
         if (/^\d+$/.test(this.timerInput.value))
             this.timerInput.style.borderColor = "#888";
         else
-            this.timerInput.style.borderColor = "#F22";        
+            this.timerInput.style.borderColor = "#F22";
     }
 
     onTimerButtonClicked = (e: MouseEvent) => {
@@ -85,7 +85,7 @@ export class Dialog {
     }
 
     onMoveSpeedChanged = (e: Event) => {
-        const value = (e.target as HTMLInputElement).value;
+        const value = (<HTMLInputElement>e.target).value;
 
         this.moveSpeedLabel.textContent = value;
         this.logic.moveSpeed = Number.parseFloat(value);
@@ -93,7 +93,7 @@ export class Dialog {
     }
 
     onMouseSensitivtyChanged = (e: Event) => {
-        const value = (e.target as HTMLInputElement).value;
+        const value = (<HTMLInputElement>e.target).value;
 
         this.mouseSensitivtyLabel.textContent = value;
         this.logic.mouseSensitivity = Number.parseFloat(value);

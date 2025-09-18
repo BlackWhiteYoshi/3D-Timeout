@@ -6,7 +6,7 @@ html {
     color-scheme: dark;
     font-family: system-ui;
     interpolate-size: allow-keywords;
-    
+
     -moz-text-size-adjust: none;
     -webkit-text-size-adjust: none;
     text-size-adjust: none;
@@ -26,7 +26,7 @@ body {
 canvas {
     display: table;
     margin-inline: auto;
-    
+
     width: 85%;
     aspect-ratio: 16 / 9;
     background-color: #000;
@@ -147,7 +147,7 @@ dialog {
                 }
             }
         }
-        
+
         /* right block - controls */
         & > div:last-child {
             & > label {

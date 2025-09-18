@@ -8,7 +8,7 @@ export class ImageLoader {
         const blob = await this.fetchImage(url);
         return await createImageBitmap(blob);
     }
-    
+
     async loadSvg(url: string, width: number, height: number): Promise<ImageBitmap> {
         const svgBlob = await this.fetchImage(url);
         const pngBlob = await this.svgToPng(svgBlob, width, height);
@@ -17,7 +17,7 @@ export class ImageLoader {
 
     async loadSvgMipmaps(url: string, width: number, height: number, mipLevelCount: number): Promise<ImageBitmap[]> {
         const svgBlob = await this.fetchImage(url);
-        
+
         const result = Array<ImageBitmap>(mipLevelCount);
         for (let i = 0; i < mipLevelCount; i++) {
             const pngBlob = await this.svgToPng(svgBlob, width, height);

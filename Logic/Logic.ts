@@ -14,7 +14,7 @@ export class Logic {
     private modelBuffer: Float32Array = new Float32Array(Renderer.OBJECT_BUFFER_SIZE * 16);
     private boxColliderBuffer: BoxCollider[] = new Array<BoxCollider>(512);
     private boxColliderCount: number = 0;
-    
+
     private viewPos: Vec3;
     private viewRotation: Vec3;
     private view: Mat4;
@@ -78,10 +78,10 @@ export class Logic {
             this.renderer.renewRenderTextures();
             this.windowResized = false;
         }
-        
+
         // creates also the digits BoxColliders
         const digitModels = this.createDigitModels();
-        
+
         // camera movement
         {
             const speed = this.moveFast ? Logic.SPEED_MULTIPLIER * 0.1 * this.moveSpeed : 0.1 * this.moveSpeed;
@@ -154,7 +154,7 @@ export class Logic {
                     this.renderer.renderSphereCubes();
                     this.renderer.renderDigits(digitModels);
                 }
-                
+
                 this.renderer.setBackgroundShader();
                 {
                     this.renderer.renderBeckgound();
@@ -185,7 +185,7 @@ export class Logic {
 
             return;
         }
-        
+
         if (   -202 < this.viewPos[0] && this.viewPos[0] < 202
             && -202 < this.viewPos[1] && this.viewPos[1] < 202
             &&  298 < this.viewPos[2] && this.viewPos[2] < 702) {
@@ -231,8 +231,8 @@ export class Logic {
             return;
         }
     }
-    
-    
+
+
     createDigitModels(): ArrayBuffer {
         const DIGIT_LINE = 10.0;
         const SPACING = 40.0;
@@ -243,11 +243,11 @@ export class Logic {
             return model;
         }
 
-        
+
         const topBar = (model: Mat4) => {
             mat4.translate(model, [0.0, 2.0 * DIGIT_LINE + 2.0, 0.0], model);
             mat4.scale(model, [DIGIT_LINE, 1.0, 1.0], model);
-            
+
             const boxCollider = this.boxColliderBuffer[this.boxColliderCount++];
             boxCollider.ax = -model[12] - DIGIT_LINE;
             boxCollider.bx = -model[12] + DIGIT_LINE;
@@ -351,7 +351,7 @@ export class Logic {
 
         this.boxColliderCount = 0;
         let time = this.timeout - Date.now();
-        if (time < 0) {            
+        if (time < 0) {
             const result = this.modelBuffer.slice(6 * 16);
             const model = mat4.create();
 
@@ -477,7 +477,7 @@ export class Logic {
                     break;
             }
         }
-        
+
         return result.buffer;
     }
 

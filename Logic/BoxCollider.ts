@@ -26,7 +26,7 @@ export class BoxCollider {
 
     private isAx: boolean;
     private isBx: boolean;
-    
+
     private isAy: boolean;
     private isBy: boolean;
 

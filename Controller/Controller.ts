@@ -9,9 +9,9 @@ export class Controller {
         this.htmlCanvas = htmlCanvas;
 
         this.htmlCanvas.onresize = () => this.logic.setWindowResized();
-        
+
         this.htmlCanvas.onclick = () => this.htmlCanvas.requestPointerLock();
-        
+
         this.htmlCanvas.onmousemove = this.onMouseMove;
         document.onwheel = this.onMouseWheel;
 
@@ -30,11 +30,11 @@ export class Controller {
     private onMouseWheel = (e: WheelEvent) => {
         this.logic.zoomCamera(e.deltaY);
     }
-    
+
 
     private ctrlPressed: boolean;
     private altPressed: boolean;
-    
+
     private onKeyPressed = (e: KeyboardEvent) => { this.onKeyTriggered(true, e); }
 
     private onKeyReleased = (e: KeyboardEvent) => { this.onKeyTriggered(false, e); }
