@@ -11,8 +11,11 @@ export class Logic {
     private htmlCanvas: HTMLCanvasElement;
     private dialogButton: SVGSVGElement;
 
+    private stateHasChanged: boolean = false;
+
     private modelBuffer: Float32Array = new Float32Array(Renderer.OBJECT_BUFFER_SIZE * 16);
-    private boxColliderBuffer: BoxCollider[] = new Array<BoxCollider>(512);
+    private modelBufferCount: number = 0;
+    private boxColliderBuffer: BoxCollider[] = new Array<BoxCollider>(Renderer.OBJECT_BUFFER_SIZE);
     private boxColliderCount: number = 0;
 
     private viewPos: Vec3;
@@ -29,7 +32,7 @@ export class Logic {
     // configs
     public timeout: number;
     public moveSpeed: number;
-    public mouseSensitivity: number = 1;
+    public mouseSensitivity: number;
 
 
     public constructor(renderer: Renderer, htmlCanvas: HTMLCanvasElement, dialogButton: SVGSVGElement) {
@@ -70,17 +73,16 @@ export class Logic {
         else
             this.mouseSensitivity = 1;
 
-        this.gameLoop();
+        this.physicsLoop();
+        window.setInterval(this.physicsLoop, 1000.0 / 120.0);
+        this.renderLoop();
     }
 
-    gameLoop = () => {
-        if (this.windowResized) {
-            this.renderer.renewRenderTextures();
-            this.windowResized = false;
-        }
+    physicsLoop = () => {
+        this.stateHasChanged = true;
 
         // creates also the digits BoxColliders
-        const digitModels = this.createDigitModels();
+        this.createDigitModels();
 
         // camera movement
         {
@@ -142,17 +144,24 @@ export class Logic {
         const lightDirectionX = Math.cos(this.lightDirectionTimer) * sinY;
         const lightDirectionZ = Math.sin(this.lightDirectionTimer) * sinY;
         this.renderer.lightDirection = vec3.create(lightDirectionX, lightDirectionY, lightDirectionZ);
+    }
 
+    renderLoop = () => {
+        try {
+            if (this.windowResized) {
+                this.renderer.renewRenderTextures();
+                this.windowResized = false;
+            }
+            else if (!this.stateHasChanged)
+                return;
 
-        // rendering
-        {
             this.renderer.renderStart();
             {
                 this.renderer.setObjectShader();
                 {
                     this.renderer.renderLittleSphere();
                     this.renderer.renderSphereCubes();
-                    this.renderer.renderDigits(digitModels);
+                    this.renderer.renderDigits(this.modelBuffer.subarray(0, this.modelBufferCount).buffer);
                 }
 
                 this.renderer.setBackgroundShader();
@@ -162,8 +171,10 @@ export class Logic {
             }
             this.renderer.renderEnd();
         }
-
-        requestAnimationFrame(this.gameLoop);
+        finally {
+            this.stateHasChanged = false;
+            requestAnimationFrame(this.renderLoop);
+        }
     }
 
     handleCameraCollision() {
@@ -233,7 +244,7 @@ export class Logic {
     }
 
 
-    createDigitModels(): ArrayBuffer {
+    createDigitModels(): void {
         const DIGIT_LINE = 10.0;
         const SPACING = 40.0;
 
@@ -352,20 +363,18 @@ export class Logic {
         this.boxColliderCount = 0;
         let time = this.timeout - Date.now();
         if (time < 0) {
-            const result = this.modelBuffer.slice(6 * 16);
+            this.modelBufferCount = 6 * 16;
             const model = mat4.create();
 
-            result.set(topBar(reset(model, 0)), 0);
-            result.set(bottomBar(reset(model, 0)), 1 * 16);
-            result.set(upperLeftBar(reset(model, 0)), 2 * 16);
-            result.set(upperRightBar(reset(model, 0)), 3 * 16);
-            result.set(lowerLeftBar(reset(model, 0)), 4 * 16);
-            result.set(lowerRightBar(reset(model, 0)), 5 * 16);
+            this.modelBuffer.set(topBar(reset(model, 0)), 0);
+            this.modelBuffer.set(bottomBar(reset(model, 0)), 1 * 16);
+            this.modelBuffer.set(upperLeftBar(reset(model, 0)), 2 * 16);
+            this.modelBuffer.set(upperRightBar(reset(model, 0)), 3 * 16);
+            this.modelBuffer.set(lowerLeftBar(reset(model, 0)), 4 * 16);
+            this.modelBuffer.set(lowerRightBar(reset(model, 0)), 5 * 16);
 
             // dialog button timeout animation
             this.dialogButton.setAttribute("timeout", "");
-
-            return result.buffer;
         }
 
         const digits: number[] = [];
@@ -390,7 +399,7 @@ export class Logic {
         } while (time > 0);
 
 
-        const result = this.modelBuffer.slice(barCount * 16);
+        this.modelBufferCount = barCount * 16;
         const model = mat4.create();
         const spaceOffset = (digits.length - 1) / 2;
         let resultIndex = -16;
@@ -398,87 +407,85 @@ export class Logic {
             const position = (spaceOffset - i) * SPACING;
             switch(digits[i]) {
                 case 0:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 1:
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 2:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 3:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 4:
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 5:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 6:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 7:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 8:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
 
                 case 9:
-                    result.set(topBar(reset(model, position)), resultIndex += 16);
-                    result.set(middleBar(reset(model, position)), resultIndex += 16);
-                    result.set(bottomBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperLeftBar(reset(model, position)), resultIndex += 16);
-                    result.set(upperRightBar(reset(model, position)), resultIndex += 16);
-                    result.set(lowerRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(topBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(middleBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(bottomBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperLeftBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(upperRightBar(reset(model, position)), resultIndex += 16);
+                    this.modelBuffer.set(lowerRightBar(reset(model, position)), resultIndex += 16);
                     break;
             }
         }
-
-        return result.buffer;
     }
 
 
