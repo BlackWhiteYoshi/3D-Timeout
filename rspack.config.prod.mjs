@@ -6,4 +6,4 @@ config.devtool = false;
 
 export default config;
 
-// npx rspack build --config rspack.config.prod.mjs
+// rspack build --config rspack.config.prod.mjs

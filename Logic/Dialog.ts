@@ -50,14 +50,14 @@ export class Dialog {
         this.mouseSensitivtyLabel.textContent = this.mouseSensitivtyInput.value;
     }
 
-    onDialogButton = (e: MouseEvent) => {
+    private onDialogButton = (e: MouseEvent) => {
         const time = this.logic.timeout - Date.now();
         this.timerInput.value = time > 0 ? time.toString() : "0";
 
         this.htmlDialog.showModal();
     }
 
-    onDialogClicked = (e: MouseEvent) => {
+    private onDialogClicked = (e: MouseEvent) => {
         const rect = this.htmlDialog.getBoundingClientRect();
         const rectBottom = rect.top + rect.height;
         const rectRight = rect.left + rect.width;
@@ -66,14 +66,14 @@ export class Dialog {
     }
 
 
-    onTimerChange = (e: Event) => {
+    private onTimerChange = (e: Event) => {
         if (/^\d+$/.test(this.timerInput.value))
             this.timerInput.style.borderColor = "#888";
         else
             this.timerInput.style.borderColor = "#F22";
     }
 
-    onTimerButtonClicked = (e: MouseEvent) => {
+    private onTimerButtonClicked = (e: MouseEvent) => {
         if (!/^\d+$/.test(this.timerInput.value))
             return;
 
@@ -84,7 +84,7 @@ export class Dialog {
         localStorage.setItem("timeout", this.logic.timeout.toString());
     }
 
-    onMoveSpeedChanged = (e: Event) => {
+    private onMoveSpeedChanged = (e: Event) => {
         const value = (<HTMLInputElement>e.target).value;
 
         this.moveSpeedLabel.textContent = value;
@@ -92,7 +92,7 @@ export class Dialog {
         localStorage.setItem("moveSpeed", value);
     }
 
-    onMouseSensitivtyChanged = (e: Event) => {
+    private onMouseSensitivtyChanged = (e: Event) => {
         const value = (<HTMLInputElement>e.target).value;
 
         this.mouseSensitivtyLabel.textContent = value;

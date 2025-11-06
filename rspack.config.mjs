@@ -34,4 +34,4 @@ export default {
     watch: true
 };
 
-// npx rspack build
+// rspack build

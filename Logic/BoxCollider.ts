@@ -19,7 +19,7 @@ export class BoxCollider {
         this.bz = bz;
     }
 
-    static create(position: Vec3, radius: number) {
+    public static create(position: Vec3, radius: number) {
         return new BoxCollider(position[0] - radius, position[0] + radius, position[1] - radius, position[1] + radius, position[2] - radius, position[2] + radius);
     }
 

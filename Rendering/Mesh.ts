@@ -1,18 +1,26 @@
 export class Mesh {
-    vertices: Float32Array;
-    indices: Uint16Array;
-    vertixCount: number;
-    triangleCount: number;
+    public get vertices(): Float32Array { return this._vertices; }
+    public _vertices: Float32Array;
+
+    public get indices(): Uint16Array { return this._indices; }
+    public _indices: Uint16Array;
+
+    public get vertixCount(): number { return this._vertixCount; }
+    public _vertixCount: number;
+
+    public get triangleCount(): number { return this._triangleCount; }
+    public _triangleCount: number;
 
     private constructor(vertices: Float32Array, indices: Uint16Array) {
-        this.vertices = vertices;
-        this.indices = indices;
-        this.vertixCount = vertices.length / 8;
-        this.triangleCount = indices.length / 3;
+        this._vertices = vertices;
+        this._indices = indices;
+        this._vertixCount = vertices.length / 8;
+        this._triangleCount = indices.length / 3;
     }
 
 
-    public static cube: Mesh = new Mesh(
+    public static get cube(): Mesh { return this._cube; }
+    private static _cube: Mesh = new Mesh(
         new Float32Array([
             // position          // normal          // texturePosition
 
@@ -75,12 +83,12 @@ export class Mesh {
     );
 
 
-    static #sphere: Mesh | null = null;
+    private static _sphere: Mesh | null = null;
     public static get sphere(): Mesh {
-        if (this.#sphere === null)
-            this.#sphere = Mesh.createSphere();
+        if (this._sphere === null)
+            this._sphere = Mesh.createSphere();
 
-        return this.#sphere;
+        return this._sphere;
     }
 
     private static createSphere(): Mesh {

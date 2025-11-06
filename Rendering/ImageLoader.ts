@@ -4,18 +4,18 @@ export class ImageLoader {
     private image: HTMLImageElement = new Image();
 
 
-    async loadPng(url: string): Promise<ImageBitmap> {
+    public async loadPng(url: string): Promise<ImageBitmap> {
         const blob = await this.fetchImage(url);
         return await createImageBitmap(blob);
     }
 
-    async loadSvg(url: string, width: number, height: number): Promise<ImageBitmap> {
+    public async loadSvg(url: string, width: number, height: number): Promise<ImageBitmap> {
         const svgBlob = await this.fetchImage(url);
         const pngBlob = await this.svgToPng(svgBlob, width, height);
         return await createImageBitmap(pngBlob);
     }
 
-    async loadSvgMipmaps(url: string, width: number, height: number, mipLevelCount: number): Promise<ImageBitmap[]> {
+    public async loadSvgMipmaps(url: string, width: number, height: number, mipLevelCount: number): Promise<ImageBitmap[]> {
         const svgBlob = await this.fetchImage(url);
 
         const result = Array<ImageBitmap>(mipLevelCount);

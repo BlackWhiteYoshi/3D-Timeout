@@ -4,7 +4,7 @@ import { BoxCollider } from "./BoxCollider";
 import { Mat4, mat4, Vec3, vec3 } from "wgpu-matrix";
 
 export class Logic {
-    static SPEED_MULTIPLIER = 5;
+    private static SPEED_MULTIPLIER = 5;
 
 
     private renderer: Renderer;
@@ -78,7 +78,7 @@ export class Logic {
         this.renderLoop();
     }
 
-    physicsLoop = () => {
+    private physicsLoop = () => {
         this.stateHasChanged = true;
 
         // creates also the digits BoxColliders
@@ -146,7 +146,7 @@ export class Logic {
         this.renderer.lightDirection = vec3.create(lightDirectionX, lightDirectionY, lightDirectionZ);
     }
 
-    renderLoop = () => {
+    private renderLoop = () => {
         try {
             if (this.windowResized) {
                 this.renderer.renewRenderTextures();
@@ -177,7 +177,7 @@ export class Logic {
         }
     }
 
-    handleCameraCollision() {
+    private handleCameraCollision() {
         if (   -25 < this.viewPos[1] && this.viewPos[1] < 25
             && 198 < this.viewPos[2] && this.viewPos[2] < 202) {
             // digits area
@@ -244,7 +244,7 @@ export class Logic {
     }
 
 
-    createDigitModels(): void {
+    private createDigitModels(): void {
         const DIGIT_LINE = 10.0;
         const SPACING = 40.0;
 
