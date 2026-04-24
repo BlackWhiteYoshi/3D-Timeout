@@ -24,14 +24,14 @@ export class BoxCollider {
     }
 
 
-    private isAx: boolean;
-    private isBx: boolean;
+    private isAx: boolean = false;
+    private isBx: boolean = false;
 
-    private isAy: boolean;
-    private isBy: boolean;
+    private isAy: boolean = false;
+    private isBy: boolean = false;
 
-    private isAz: boolean;
-    private isBz: boolean;
+    private isAz: boolean = false;
+    private isBz: boolean = false;
 
     /** aabb testing */
     public hasCollision(otherCollider: BoxCollider): boolean {

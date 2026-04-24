@@ -8,7 +8,7 @@ export class Controller {
         this.logic = logic;
         this.htmlCanvas = htmlCanvas;
 
-        this.htmlCanvas.onresize = () => this.logic.setWindowResized();
+        window.onresize = () => this.logic.setWindowResized();
 
         this.htmlCanvas.onclick = () => this.htmlCanvas.requestPointerLock();
 
@@ -32,8 +32,8 @@ export class Controller {
     }
 
 
-    private ctrlPressed: boolean;
-    private altPressed: boolean;
+    private ctrlPressed: boolean = false;
+    private altPressed: boolean = false;
 
     private onKeyPressed = (e: KeyboardEvent) => { this.onKeyTriggered(true, e); }
 

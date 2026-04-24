@@ -28,8 +28,10 @@ export class Renderer {
     private sphereIndexBuffer: GPUBuffer;
 
     // gpu texture
-    private texture: GPUTexture;
-    private textureSampler: GPUSampler;
+    private multisampleTexture: GPUTexture;
+    private depthStencilTexture: GPUTexture;
+    private svgTexture: GPUTexture;
+    private svgTextureSampler: GPUSampler;
 
     // gpu model matrices buffer
     private modelMatrices: GPUBuffer;
@@ -78,25 +80,6 @@ export class Renderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT
         });
 
-        this.renderPassDescriptor = {
-            colorAttachments: <Iterable<GPURenderPassColorAttachment>>[{
-                view: this.createMultisampleTexture(),
-                resolveTarget: null,
-                loadOp: "clear",
-                clearValue: [0.3, 0.3, 0.3, 1],
-                storeOp: "store",
-            }],
-            depthStencilAttachment: {
-                view: this.createDepthStencilView(),
-                depthLoadOp: "clear",
-                depthClearValue: 1.0,
-                depthStoreOp: "store",
-                stencilLoadOp: "clear",
-                stencilClearValue: 0,
-                stencilStoreOp: "store"
-            }
-        };
-
 
         // create gpu buffers
 
@@ -134,8 +117,10 @@ export class Renderer {
         new Uint16Array(this.sphereIndexBuffer.getMappedRange()).set(Mesh.sphere.indices);
         this.sphereIndexBuffer.unmap();
 
-        // texture
-        const textureDescriptor: GPUTextureDescriptor = {
+        // textures
+        this.multisampleTexture = this.createMultisampleTexture();
+        this.depthStencilTexture = this.createDepthStencilTexture();
+        const svgTextureDescriptor: GPUTextureDescriptor = {
             size: {
                 width: bitmaps[0].width,
                 height: bitmaps[0].height
@@ -144,11 +129,11 @@ export class Renderer {
             usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
             mipLevelCount: bitmaps.length
         };
-        this.texture = this.device.createTexture(textureDescriptor);
+        this.svgTexture = this.device.createTexture(svgTextureDescriptor);
         for (let i = 0; i < bitmaps.length; i++)
-            this.device.queue.copyExternalImageToTexture({source: bitmaps[i]}, {texture: this.texture, mipLevel: i}, {width: bitmaps[i].width, height: bitmaps[i].height});
+            this.device.queue.copyExternalImageToTexture({source: bitmaps[i]}, {texture: this.svgTexture, mipLevel: i}, {width: bitmaps[i].width, height: bitmaps[i].height});
 
-        this.textureSampler = this.device.createSampler({
+        this.svgTextureSampler = this.device.createSampler({
             addressModeU: "clamp-to-edge",
             addressModeV: "clamp-to-edge",
             magFilter: "nearest",
@@ -207,7 +192,7 @@ export class Renderer {
 
         const bindGroupLayout = this.device.createBindGroupLayout({
             entries: [
-                {   // textrue
+                {   // texture
                     binding: 0,
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: {}
@@ -252,7 +237,7 @@ export class Renderer {
             entries: [
                 {
                     binding: 0,
-                    resource: this.texture.createView({
+                    resource: this.svgTexture.createView({
                         format: Renderer.COLOR_FORMAT,
                         dimension: "2d",
                         aspect: "all",
@@ -264,7 +249,7 @@ export class Renderer {
                 },
                 {
                     binding: 1,
-                    resource: this.textureSampler
+                    resource: this.svgTextureSampler
                 },
                 {
                     binding: 2,
@@ -353,11 +338,31 @@ export class Renderer {
                 count: Renderer.SAMPLE_COUNT
             }
         });
+
+
+        this.renderPassDescriptor = {
+            colorAttachments: [{
+                view: this.multisampleTexture.createView(),
+                resolveTarget: undefined,
+                loadOp: "clear",
+                clearValue: [0.3, 0.3, 0.3, 1],
+                storeOp: "store",
+            }],
+            depthStencilAttachment: {
+                view: this.depthStencilTexture.createView(),
+                depthLoadOp: "clear",
+                depthClearValue: 1.0,
+                depthStoreOp: "store",
+                stencilLoadOp: "clear",
+                stencilClearValue: 0,
+                stencilStoreOp: "store"
+            }
+        };
     }
 
 
-    private commandEncoder: GPUCommandEncoder;
-    public renderPassEncoder: GPURenderPassEncoder;
+    private commandEncoder: GPUCommandEncoder = undefined!;
+    public renderPassEncoder: GPURenderPassEncoder = undefined!;
 
     public renderStart() {
         (<GPURenderPassColorAttachment[]>this.renderPassDescriptor.colorAttachments)[0].resolveTarget = this.canvasContext.getCurrentTexture().createView();
@@ -420,24 +425,20 @@ export class Renderer {
 
 
     public renewRenderTextures() {
-        this.renderPassDescriptor.depthStencilAttachment!.view = this.createDepthStencilView();
-        (<GPURenderPassColorAttachment[]>this.renderPassDescriptor.colorAttachments)[0].view = this.createMultisampleTexture();
+        this.multisampleTexture.destroy();
+        this.multisampleTexture = this.createMultisampleTexture();
+        (<GPURenderPassColorAttachment[]>this.renderPassDescriptor.colorAttachments)[0].view = this.createMultisampleTexture().createView();
+
+        this.depthStencilTexture.destroy();
+        this.depthStencilTexture = this.createDepthStencilTexture();
+        this.renderPassDescriptor.depthStencilAttachment!.view = this.createDepthStencilTexture().createView();
     }
 
-    private createDepthStencilView(): GPUTextureView {
-        return this.device.createTexture({
-            size: {
-                width: this.htmlCanvas.width,
-                height: this.htmlCanvas.height,
-                depthOrArrayLayers: 1
-            },
-            format: Renderer.DEPTH_FORMAT,
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            sampleCount: Renderer.SAMPLE_COUNT
-        }).createView();
-    }
+    private createMultisampleTexture(): GPUTexture {
+        const rect = this.htmlCanvas.getBoundingClientRect();
+        this.htmlCanvas.width = rect.width;
+        this.htmlCanvas.height = rect.height;
 
-    private createMultisampleTexture(): GPUTextureView {
         return this.device.createTexture({
             size: {
                 width: this.htmlCanvas.width,
@@ -448,6 +449,19 @@ export class Renderer {
             // @ts-ignore
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.SAMPLED,
             sampleCount: Renderer.SAMPLE_COUNT
-        }).createView();
+        });
+    }
+
+    private createDepthStencilTexture(): GPUTexture {
+        return this.device.createTexture({
+            size: {
+                width: this.htmlCanvas.width,
+                height: this.htmlCanvas.height,
+                depthOrArrayLayers: 1
+            },
+            format: Renderer.DEPTH_FORMAT,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            sampleCount: Renderer.SAMPLE_COUNT
+        });
     }
 }

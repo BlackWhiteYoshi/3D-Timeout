@@ -2,9 +2,9 @@
   "name": "webgpu-test",
   "type": "commonjs",
   "dependencies": {
-    "wgpu-matrix": "^3.4.0"
+    "wgpu-matrix": "^3.4.2"
   },
   "devDependencies": {
-    "@webgpu/types": "^0.1.61"
+    "@webgpu/types": "^0.1.69"
   }
 }

@@ -500,7 +500,11 @@ export class Logic {
     public moveFast: boolean = false;
 
     private windowResized: boolean = false;
-    public setWindowResized() { this.windowResized = true; }
+    public setWindowResized() {
+        const rect = this.htmlCanvas.getBoundingClientRect();
+        if (this.htmlCanvas.width != rect.width || this.htmlCanvas.height != rect.height)
+            this.windowResized = true;
+    }
 
     public rotateCamera(yaw: number, pitch: number) {
         const sensitivity = 0.001 * this.mouseSensitivity;
